@@ -31,3 +31,15 @@ GOOGLE_MODEL_ID
 ```
 python classify.py <input image>
 ```
+
+### Run server
+
+```
+FLASK_APP=server.py FLASK_ENV=development flask run
+```
+
+### Classify image using server
+
+```
+curl http://localhost:5000/classify -XPOST --data-binary @'<path to image file>' -H 'Content-Type: application/octet-stream'
+```
