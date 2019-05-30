@@ -1,0 +1,30 @@
+<!doctype html>
+<html ng-app>
+  <head>
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/document-automation.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-filestyle.min.js"> </script>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+  </head>
+  <body style="margin-top: 50px">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6 text-center">
+          <img src="https://via.placeholder.com/800x1132" id="document" class="rounded" width="800" height="1132">
+        </div>
+
+        <div class="col-md-6">          
+          <form method="post">
+            <div class="form-group">
+              <label for="file">File path</label>
+              <input type="file" accept="image/*" class="filestyle" id="filepath"/>
+            </div>
+            <input type="button" class="btn btn-primary" value="Upload" id="upload">
+          </form>
+
+          <span id="classification"></span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
