@@ -15,10 +15,20 @@ $(document).ready(function() {
             data: files,
             contentType: "application/octet-stream",
             processData: false,
+            timeout: 30000,
             success: function(response) {
                 if (response != 0) {
                     console.log(response);
+
+                    var classification = $.parseJSON(response).payload[0].displayName;
+                    $("#classification").removeClass();
+                    $("#classification").addClass("text-success");
+                    $("#classification").text(classification);
                 } else {
+                    var result = "Upload failed";
+                    $("#classification").removeClass();
+                    $("#classification").addClass("text-failure");
+                    $("#classification").text(classification);
                     console.log("Error uploading file");
                 }
             },
