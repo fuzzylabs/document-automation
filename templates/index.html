@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app>
+<html>
   <head>
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/document-automation.js"></script>
@@ -10,7 +10,7 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-6 text-center">
-          <img src="https://via.placeholder.com/800x1132" id="document" class="rounded" width="800" height="1132">
+          <canvas id="canvas" width="900" height="1274" style="border: 1px solid #d3d3d3"></canvas>
         </div>
 
         <div class="col-md-6">          
@@ -23,6 +23,8 @@
           </form>
 
           <h2><span id="classification" class="text-muted font-italic">classification result will appear here</span></h2>
+
+          <span id="paragraphs"></span>
         </div>
       </div>
     </div>

@@ -57,26 +57,26 @@ class Classifier:
                     paragraph_text = ''
                     paragraph_boundary = []
 
-            for vertex in paragraph.bounding_box.vertices:
-                paragraph_boundary.append({'x': vertex.x, 'y': vertex.y})
+                    for vertex in paragraph.bounding_box.vertices:
+                        paragraph_boundary.append({'x': vertex.x, 'y': vertex.y})
 
-            for word in paragraph.words:
-                new_word = ''
-                for symbol in word.symbols:
-                    new_word = new_word + symbol.text
+                    for word in paragraph.words:
+                        new_word = ''
+                        for symbol in word.symbols:
+                            new_word = new_word + symbol.text
 
-                    if (symbol.property.HasField('detected_break')):
-                        db = symbol.property.detected_break
-                        if (db == vision.enums.TextAnnotation.DetectedBreak.BreakType.LINE_BREAK):
-                            new_word = new_word + '\n'
-                        else:
-                            new_word = new_word + ' '
+                            if (symbol.property.HasField('detected_break')):
+                                db = symbol.property.detected_break
+                                if (db == vision.enums.TextAnnotation.DetectedBreak.BreakType.LINE_BREAK):
+                                    new_word = new_word + '\n'
+                                else:
+                                    new_word = new_word + ' '
 
-                paragraph_text = paragraph_text + new_word
+                        paragraph_text = paragraph_text + new_word
 
-            paragraphs_with_boundaries['paragraphs'].append({
-                'boundingBox': paragraph_boundary,
-                'text': paragraph_text
-            })
+                    paragraphs_with_boundaries['paragraphs'].append({
+                        'boundingBox': paragraph_boundary,
+                        'text': paragraph_text
+                    })
 
-            return paragraphs_with_boundaries
+        return paragraphs_with_boundaries
