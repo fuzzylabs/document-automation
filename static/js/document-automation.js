@@ -20,7 +20,7 @@ $(document).ready(function() {
                 if (response != 0) {
                     console.log(response);
 
-                    var classification = $.parseJSON(response).payload[0].displayName;
+                    var classification = $.parseJSON(response).classification[0].class;
                     $("#classification").removeClass();
                     $("#classification").addClass("text-success");
                     $("#classification").text(classification);

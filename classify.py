@@ -12,4 +12,5 @@ if __name__ == '__main__':
     classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], os.environ['GOOGLE_MODEL_ID'])
 
     with io.open(args.document, 'rb') as f:
-        print classifier.classify(f.read())
+        result = classifier.classify(f.read())
+        print result.classification
