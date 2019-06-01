@@ -1,24 +1,36 @@
 import json
 
 from google.cloud import vision
+from google.cloud import language
 from google.cloud import automl_v1beta1
 from google.cloud.automl_v1beta1.proto import service_pb2
 
 class ClassificationResult:
+    width = None
+    height = None
     classification = None
     paragraphs = None
+    entities = None
 
-    def __init__(self, classification, paragraphs):
+    def __init__(self, width, height, classification, paragraphs, entities):
+        self.width = width
+        self.height = height
         self.classification = classification
         self.paragraphs = paragraphs
+        self.entities = entities
 
     def toJson(self):
-        return json.dumps({"classification": self.classification,
-                           "paragraphs": self.paragraphs})
+        return json.dumps({
+            "width": self.width,
+            "height": self.height,
+            "classification": self.classification,
+            "paragraphs": self.paragraphs,
+            "entities": self.entities})
 
 class Classifier:
     g_image_annotator = vision.ImageAnnotatorClient()
     g_prediction_client = automl_v1beta1.PredictionServiceClient()
+    g_language_client = language.LanguageServiceClient();
 
     def __init__(self, project_id, model_id):
         self.project_id = project_id
@@ -27,18 +39,46 @@ class Classifier:
     def classify(self, image):
         document_image = vision.types.Image(content=image)
 
+        # OCR the image extracting the text
         image_response = self.g_image_annotator.document_text_detection(image=document_image)
         annotation = image_response.full_text_annotation
         text = annotation.text
 
+        # Run the text through a classification model
         name = 'projects/{}/locations/us-central1/models/{}'.format(self.project_id, self.model_id)
         payload = {'text_snippet': {'content': text, 'mime_type': 'text/plain'}}
-
         prediction = self.g_prediction_client.predict(name, payload, {})
-        
+
+        # Extract interesting entities from the text
+        document = language.types.Document(content=text, type=language.enums.Document.Type.PLAIN_TEXT)
+        entity_result = self.g_language_client.analyze_entities(document=document)
+
         return ClassificationResult(
+            annotation.pages[0].width,
+            annotation.pages[0].height,
             self._get_classification(prediction),
-            self._get_paragraphs_with_boundaries(annotation))
+            self._get_paragraphs_with_boundaries(annotation),
+            self._get_entities(entity_result))
+
+    def _get_entities(self, entity_result):
+        def mk_entry(e):
+            return {'salience': e.salience, 'name': e.name}
+
+
+        def render_type(t):
+            try:
+                return language.types.Entity.Type.Name(t)
+            except:
+                return str(t)
+
+        entity_map = {}
+        for entity in entity_result.entities:
+            e_type = render_type(entity.type)
+            if not entity_map.has_key(e_type):
+                entity_map[e_type] = []
+            entity_map[e_type].append(mk_entry(entity))
+
+        return entity_map
 
     def _get_classification(self, prediction):
         classification = []
@@ -65,9 +105,9 @@ class Classifier:
                         for symbol in word.symbols:
                             new_word = new_word + symbol.text
 
-                            if (symbol.property.HasField('detected_break')):
+                            if symbol.property.HasField('detected_break'):
                                 db = symbol.property.detected_break
-                                if (db == vision.enums.TextAnnotation.DetectedBreak.BreakType.LINE_BREAK):
+                                if db == vision.enums.TextAnnotation.DetectedBreak.BreakType.LINE_BREAK:
                                     new_word = new_word + '\n'
                                 else:
                                     new_word = new_word + ' '

@@ -2,6 +2,8 @@ $(document).ready(function() {
     $(":file").filestyle();
 
     var ctx = $("#canvas")[0].getContext("2d");
+    var canvasWidth = 900;
+    var canvasHeight = 1274;
 
     $("#filepath").change(function() {
         var file = $("#filepath")[0].files[0];
@@ -9,7 +11,7 @@ $(document).ready(function() {
         var img = new Image();
         img.src = objUrl;
         img.onload = function() {
-            ctx.drawImage(img, 0, 0, 900, 1165);
+            ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
             URL.revokeObjectURL(img.src);
         };
     });
@@ -38,18 +40,27 @@ $(document).ready(function() {
                     $("#classification").addClass("text-success");
                     $("#classification").text(classification);
 
-                    json.paragraphs.paragraphs.forEach(function(paragraph) {
-                        ctx.moveTo(paragraph.boundingBox[0].x, paragraph.boundingBox[0].y);
-                        ctx.lineTo(paragraph.boundingBox[1].x, paragraph.boundingBox[1].y);
-                        ctx.lineTo(paragraph.boundingBox[2].x, paragraph.boundingBox[2].y);
-                        ctx.lineTo(paragraph.boundingBox[3].x, paragraph.boundingBox[3].y);
-                        ctx.lineTo(paragraph.boundingBox[0].x, paragraph.boundingBox[0].y);
+                    var xcoeff = canvasWidth / json.width;
+                    var ycoeff = canvasHeight / json.height;
 
-                        $("#paragraphs").append("<p>" + paragraph.text + "</p>");
+                    json.paragraphs.paragraphs.forEach(function(paragraph) {
+                        ctx.moveTo(paragraph.boundingBox[0].x * xcoeff, paragraph.boundingBox[0].y * ycoeff);
+                        ctx.lineTo(paragraph.boundingBox[1].x * xcoeff, paragraph.boundingBox[1].y * ycoeff);
+                        ctx.lineTo(paragraph.boundingBox[2].x * xcoeff, paragraph.boundingBox[2].y * ycoeff);
+                        ctx.lineTo(paragraph.boundingBox[3].x * xcoeff, paragraph.boundingBox[3].y * ycoeff);
+                        ctx.lineTo(paragraph.boundingBox[0].x * xcoeff, paragraph.boundingBox[0].y * ycoeff);
                     });
 
                     ctx.strokeStyle = "red";
                     ctx.stroke();
+
+                    Object.entries(json.entities).forEach(function([key, value]) {
+                        $("#paragraphs").append("<p><b>" + key + "</b>");
+                        value.forEach(function(n) {
+                            $("#paragraphs").append(n.name + ", ");
+                        });
+                        $("#paragraphs").append("</p>");
+                    });
                 } else {
                     var result = "Upload failed";
                     $("#classification").removeClass();
