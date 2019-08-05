@@ -9,9 +9,6 @@ jobs:
           name: Unit Test
           command: echo true
   build:
-    branches:
-      only:
-        - master
     docker:
       - image: google/cloud-sdk
     environment:
