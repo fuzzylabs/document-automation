@@ -5,7 +5,7 @@ jobs:
       - image: google/cloud-sdk
     environment:
       - GOOGLE_PROJECT_ID: "document-automation-dev"
-      - GOOGLE_STORAGE_BUCKET_URL: "gs://TODO-FIXME"
+      - GOOGLE_STORAGE_BUCKET_URL: "gs://107906084271_fuzzylabs_document-automation_dev_cloud-functions"
     steps:
       - checkout
       - run:
