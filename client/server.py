@@ -4,12 +4,13 @@ from flask import *
 import requests
 
 app = Flask(__name__, static_url_path='/static')
+request_url = os.environ.get('BACKEND_URL')
 
 @app.route('/classify', methods=['POST'])
 def classify():
     request_data = request.get_data()
     if (request_data != ""):
-        result = requests.post("https://us-central1-fuzzylabs.cloudfunctions.net/function-1", request_data)
+        result = requests.post("https://" + request_url, request_data)
         return result.text
     else:
         return "No image supplied", 400

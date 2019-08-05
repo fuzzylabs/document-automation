@@ -18,19 +18,6 @@ pip install -r requirements.txt
 
 ## Running
 
-### Environment variables
-
-```
-GOOGLE_APPLICATION_CREDENTIALS
-GCP_PROJECT
-```
-
-### Classify an image
-
-```
-python classify.py <input image>
-```
-
 ### Run server
 
 ```
