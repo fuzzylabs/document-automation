@@ -45,9 +45,9 @@ class Classifier:
         text = annotation.text
 
         # Run the text through a classification model
-        name = 'projects/{}/locations/us-central1/models/{}'.format(self.project_id, self.model_id)
-        payload = {'text_snippet': {'content': text, 'mime_type': 'text/plain'}}
-        prediction = self.g_prediction_client.predict(name, payload, {})
+        #name = 'projects/{}/locations/us-central1/models/{}'.format(self.project_id, self.model_id)
+        #payload = {'text_snippet': {'content': text, 'mime_type': 'text/plain'}}
+        #prediction = self.g_prediction_client.predict(name, payload, {})
 
         # Extract interesting entities from the text
         document = language.types.Document(content=text, type=language.enums.Document.Type.PLAIN_TEXT)
@@ -56,7 +56,7 @@ class Classifier:
         return ClassificationResult(
             annotation.pages[0].width,
             annotation.pages[0].height,
-            self._get_classification(prediction),
+            None, #self._get_classification(prediction),
             self._get_paragraphs_with_boundaries(annotation),
             self._get_entities(entity_result))
 
@@ -80,13 +80,13 @@ class Classifier:
 
         return entity_map
 
-    def _get_classification(self, prediction):
-        classification = []
+    #def _get_classification(self, prediction):
+    #    classification = []
 
-        for payload in prediction.payload:
-            classification.append({"class": payload.display_name, "score": payload.classification.score})
+    #    for payload in prediction.payload:
+    #        classification.append({"class": payload.display_name, "score": payload.classification.score})
 
-        return classification
+    #   return classification
 
     def _get_paragraphs_with_boundaries(self, annotation):
         paragraphs_with_boundaries = {'paragraphs': []}

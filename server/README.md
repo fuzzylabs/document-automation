@@ -23,7 +23,6 @@ pip install -r requirements.txt
 ```
 GOOGLE_APPLICATION_CREDENTIALS
 GOOGLE_PROJECT_ID
-GOOGLE_MODEL_ID
 ```
 
 ### Classify an image

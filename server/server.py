@@ -1,6 +1,9 @@
 import os
 import logging as log
 
+import sys
+sys.path.append('../functions/classify')
+
 from flask import *
 from classifier import Classifier
 
@@ -20,4 +23,5 @@ def classify():
 def home():
     return render_template('index.html')
 
-classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], os.environ['GOOGLE_MODEL_ID'])
+#classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], os.environ['GOOGLE_MODEL_ID'])
+classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], None)
