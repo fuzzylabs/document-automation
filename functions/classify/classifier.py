@@ -2,7 +2,7 @@ import json
 
 from google.cloud import vision
 from google.cloud import language
-#from google.cloud import automl_v1beta1
+from google.cloud import automl_v1beta1
 from google.cloud.automl_v1beta1.proto import service_pb2
 
 class ClassificationResult:
