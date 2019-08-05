@@ -17,6 +17,3 @@
 **/env
 .ipynb_checkpoints
 *.pyc
-
-# tmp function zip files
-/terraform/tmp/*

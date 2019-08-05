@@ -1,8 +1,7 @@
 import os
 import logging as log
-
 from flask import *
-from classifier import Classifier
+import requests
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -10,14 +9,11 @@ app = Flask(__name__, static_url_path='/static')
 def classify():
     request_data = request.get_data()
     if (request_data != ""):
-        result = classifier.classify(request_data)
-        log.info("Image classification is"  + str(result.classification))
-        return result.toJson()
+        result = requests.post("https://us-central1-fuzzylabs.cloudfunctions.net/function-1", request_data)
+        return result.text
     else:
         return "No image supplied", 400
 
 @app.route('/')
 def home():
     return render_template('index.html')
-
-classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], os.environ['GOOGLE_MODEL_ID'])
