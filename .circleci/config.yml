@@ -8,7 +8,7 @@ jobs:
       - run:
           name: Unit Test
           command: echo true
-  build:
+  build_and_deploy:
     docker:
       - image: google/cloud-sdk
     environment:
@@ -33,10 +33,10 @@ jobs:
 
 workflows:
   version: 2
-  test_and_build:
+  test_build_deploy:
     jobs:
       - test
-      - build:
+      - build_and_deploy:
           requires:
             - test
           filters:
