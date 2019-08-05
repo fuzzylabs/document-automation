@@ -20,7 +20,7 @@ jobs:
           command: echo true
       - run:
           name: Create Cloud Function Classify Zip File
-          command: pushd functions/classify && zip classify.zip . && popd
+          command: pushd functions/classify && ls -l && zip classify.zip . && popd
       - run:
           name: Push content to bucket
           command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
