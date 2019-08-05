@@ -1,6 +1,14 @@
 version: 2
 jobs:
-  build:
+  test:
+    docker:
+      - image: circleci/python
+    steps:
+      - checkout
+      - run:
+          name: Unit Test
+          command: echo true
+  build_and_deploy:
     docker:
       - image: google/cloud-sdk
     environment:
@@ -9,18 +17,29 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Setup Google Cloud SDK
+          name: Create Cloud Function Classify Zip File
           command: |
             apt-get install -qq -y zip
+            pushd functions/classify && zip -r classify.zip . && popd
+      - run:
+          name: Setup Google Cloud SDK
+          command: |
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
-          name: Unit Test
-          command: echo true
-      - run:
-          name: Create Cloud Function Classify Zip File
-          command: pushd functions/classify && zip -r classify.zip . && popd
-      - run:
           name: Push content to bucket
           command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
+
+workflows:
+  version: 2
+  test_build_deploy:
+    jobs:
+      - test
+      - build_and_deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
