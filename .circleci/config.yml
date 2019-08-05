@@ -16,7 +16,7 @@ jobs:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
           name: Unit Test
-          command: true
+          command: echo true
       - run:
           name: Create Cloud Function Classifier Zip File
           command: pushd functions/classifier && zip classifier.zip . && popd
