@@ -36,9 +36,11 @@ $(document).ready(function() {
                     console.log(response);
                     var json = $.parseJSON(response);
 
-                    var classification = json.classification[0].class;
+                    //var classification = json.classification[0].class;
+                    //$("#classification").addClass("text-success");
+                    //$("#classification").text(classification);
                     $("#classification").addClass("text-success");
-                    $("#classification").text(classification);
+                    $("#classification").text("...");
 
                     var xcoeff = canvasWidth / json.width;
                     var ycoeff = canvasHeight / json.height;

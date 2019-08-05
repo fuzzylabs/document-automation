@@ -3,7 +3,7 @@ import logging as log
 from flask import *
 from classifier import Classifier
 
-classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], None)
+classifier = Classifier(os.environ['GCP_PROJECT'], None)
 
 def classify(request):
     """Responds to any HTTP request.
@@ -22,6 +22,3 @@ def classify(request):
         return result.toJson()
     else:
         return "No image supplied", 400
-
-
-    return f'Hello World!'

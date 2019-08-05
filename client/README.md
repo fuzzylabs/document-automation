@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ```
 GOOGLE_APPLICATION_CREDENTIALS
-GOOGLE_PROJECT_ID
+GCP_PROJECT
 ```
 
 ### Classify an image

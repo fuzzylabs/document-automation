@@ -74,7 +74,7 @@ class Classifier:
         entity_map = {}
         for entity in entity_result.entities:
             e_type = render_type(entity.type)
-            if not entity_map.has_key(e_type):
+            if not e_type in entity_map:
                 entity_map[e_type] = []
             entity_map[e_type].append(mk_entry(entity))
 
