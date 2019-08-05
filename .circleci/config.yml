@@ -31,9 +31,9 @@ jobs:
           name: Push content to bucket
           command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
 
- workflows:
-   version: 2
-   test_and_build:
-     jobs:
-       - test
-       - build
+workflows:
+  version: 2
+  test_and_build:
+    jobs:
+      - test
+      - build
