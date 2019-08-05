@@ -18,8 +18,8 @@ jobs:
           name: Unit Test
           command: echo true
       - run:
-          name: Create Cloud Function Classifier Zip File
-          command: pushd functions/classifier && zip classifier.zip . && popd
+          name: Create Cloud Function Classify Zip File
+          command: pushd functions/classify && zip classify.zip . && popd
       - run:
           name: Push content to bucket
-          command: gsutil -m cp functions/classifier/classifier.zip ${GOOGLE_STORAGE_BUCKET_URL}
+          command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
