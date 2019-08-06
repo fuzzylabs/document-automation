@@ -45,9 +45,9 @@ jobs:
           name: Install Terragrunt and Terraform
           command: |
             apt-get install -qq -y curl unzip
-            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
+            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
             chmod +x /bin/terragrunt
-            curl -sL https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION_linux_amd64.zip -o /tmp/terraform.zip
+            curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
             unzip /tmp/terraform.zip -d /bin
       - run:
           name: Setup Google Cloud SDK
