@@ -55,7 +55,7 @@ jobs:
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
             pushd terraform/${ENV}/${REGION}/services/cloud_functions
-            terragrunt apply --terragrunt-non-interactive
+            terragrunt apply --auto-approve
             popd
 
 workflows:
