@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Install Terragrunt and Terraform
           command: |
-            apk add -q curl
+            apt-get install -qq -y curl
             curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
             chmod +x /bin/terragrunt
             curl -sL https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION_linux_amd64.zip -o /tmp/terraform.zip
