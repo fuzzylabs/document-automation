@@ -43,7 +43,7 @@ jobs:
       - run:
           name: Install Terragrunt
           command: |
-            apt-get install -qq -y curl
+            apk add -q curl
             curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
             chmod +x /bin/terragrunt
       - run:
