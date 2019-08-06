@@ -48,9 +48,8 @@ jobs:
       - run:
           name: Terragrunt Plan
           command: |
-            pushd terraform/dev/europe-west1/services/cloud_functions
+            cd terraform/dev/europe-west1/services/cloud_functions
             terragrunt plan
-            popd
 
 workflows:
   version: 2
