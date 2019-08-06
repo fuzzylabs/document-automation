@@ -8,7 +8,7 @@ jobs:
       - run:
           name: Unit Test
           command: echo true
-  build_and_deploy:
+  build_and_publish:
     docker:
       - image: google/cloud-sdk
     environment:
@@ -30,16 +30,40 @@ jobs:
       - run:
           name: Push content to bucket
           command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
+  deploy_to_dev:
+    docker:
+      - image: hashicorp/terraform:0.12.5
+    environment:
+      - ENV: "dev"
+      - REGION: "europe-west1"
+      - TERRAGRUNT_VERSION: "0.19.9"
+    working_directory: terraform/$ENV/$REGION/services/cloud_functions
+    steps:
+      - checkout
+      - run:
+          name: Install Terragrunt
+          command: |
+            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
+            chmod +x /bin/terragrunt
+          name: Terragrunt Plan
+          command: terragrunt plan
 
 workflows:
   version: 2
   test_build_deploy:
     jobs:
       - test
-      - build_and_deploy:
-          type: approval
+      - build_and_publish:
           requires:
             - test
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
+      - deploy_to_dev:
+          #type: approval
+          requires:
+            - build_and_publish
           #filters:
           #  branches:
           #    only:
