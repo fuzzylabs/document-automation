@@ -53,7 +53,7 @@ jobs:
           name: Terragrunt Plan
           command: |
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-            export GOOGLE_APPLICATION_CREDENTIALS=GOOGLE_APPLICATION_CREDENTIALS
+            export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
             pushd terraform/${ENV}/${REGION}/services/cloud_functions
             env
             terragrunt plan
