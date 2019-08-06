@@ -50,13 +50,10 @@ jobs:
             curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
             unzip /tmp/terraform.zip -d /bin
       - run:
-          name: Setup Google Cloud SDK
+          name: Terragrunt Plan
           command: |
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             export GOOGLE_APPLICATION_CREDENTIALS=GOOGLE_APPLICATION_CREDENTIALS
-      - run:
-          name: Terragrunt Plan
-          command: |
             pushd terraform/${ENV}/${REGION}/services/cloud_functions
             env
             terragrunt plan
