@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Setup Google Cloud SDK
           command: |
-            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            echo $GCLOUD_KEYFILE_JSON > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
@@ -46,9 +46,6 @@ jobs:
             apk add -q curl
             curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
             chmod +x /bin/terragrunt
-      - run:
-          name: Setup Google Cloud Credentials
-          command: export GCLOUD_KEYFILE_JSON=$GCLOUD_SERVICE_KEY
       - run:
           name: Terragrunt Plan
           command: |
