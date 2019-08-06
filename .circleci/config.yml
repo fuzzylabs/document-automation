@@ -37,7 +37,7 @@ jobs:
       - ENV: "dev"
       - REGION: "europe-west1"
       - TERRAGRUNT_VERSION: "0.19.9"
-    working_directory: terraform/$ENV/$REGION/services/cloud_functions
+    working_directory: terraform/dev/europe-west1/services/cloud_functions
     steps:
       - checkout
       - run:
