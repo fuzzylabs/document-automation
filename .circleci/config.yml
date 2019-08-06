@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Setup Google Cloud SDK
           command: |
-            echo $GCLOUD_KEYFILE_JSON > ${HOME}/gcloud-service-key.json
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
@@ -32,26 +32,36 @@ jobs:
           command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
   deploy_to_dev:
     docker:
-      - image: hashicorp/terraform:0.12.5
+      - image: google/cloud-sdk
     environment:
-      - GOOGLE_PROJECT_ID: "document-automation-dev"
       - ENV: "dev"
+      - GOOGLE_PROJECT_ID: "document-automation-dev"
       - REGION: "europe-west1"
       - TERRAGRUNT_VERSION: "0.19.9"
+      - TERRAFORM_VERSION: "0.12.5"
     steps:
       - checkout
       - run:
-          name: Install Terragrunt
+          name: Install Terragrunt and Terraform
           command: |
             apk add -q curl
             curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
             chmod +x /bin/terragrunt
+            curl -sL https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION_linux_amd64.zip -o /tmp/terraform.zip
+            unzip /tmp/terraform.zip -d /bin
+      - run:
+          name: Setup Google Cloud SDK
+          command: |
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
           name: Terragrunt Plan
           command: |
-            cd terraform/dev/europe-west1/services/cloud_functions
+            pushd terraform/${ENV}/${REGION}/services/cloud_functions
             env
             terragrunt plan
+            popd
 
 workflows:
   version: 2
