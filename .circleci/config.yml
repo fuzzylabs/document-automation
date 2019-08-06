@@ -37,7 +37,6 @@ jobs:
       - ENV: "dev"
       - REGION: "europe-west1"
       - TERRAGRUNT_VERSION: "0.19.9"
-    working_directory: terraform/dev/europe-west1/services/cloud_functions
     steps:
       - checkout
       - run:
@@ -47,11 +46,11 @@ jobs:
             curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION/terragrunt_linux_386 -o /bin/terragrunt
             chmod +x /bin/terragrunt
       - run:
-          name: Debug
-          command: ls -l
-      - run:
           name: Terragrunt Plan
-          command: terragrunt plan
+          command: |
+            pushd terraform/dev/europe-west1/services/cloud_functions
+            terragrunt plan
+            popd
 
 workflows:
   version: 2
