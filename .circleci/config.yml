@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   test:
     docker:
@@ -20,7 +20,9 @@ jobs:
           name: Create Cloud Function Classify Zip File
           command: |
             apt-get install -qq -y zip
-            pushd functions/classify && zip -r classify.zip . && popd
+            pushd functions/classify
+            zip -r classify.zip .
+            popd
       - run:
           name: Setup Google Cloud SDK
           command: |
@@ -58,23 +60,19 @@ jobs:
             terragrunt apply --auto-approve
             popd
 
+# Workflows determine the order of the defined jobs.
 workflows:
-  version: 2
   test_build_deploy:
     jobs:
       - test
       - build_and_publish:
           requires:
             - test
-          #filters:
-          #  branches:
-          #    only:
-          #      - master
+          filters:
+            branches:
+              only:
+                - master
       - deploy_to_dev:
-          #type: approval
+          type: approval
           requires:
             - build_and_publish
-          #filters:
-          #  branches:
-          #    only:
-          #      - master
