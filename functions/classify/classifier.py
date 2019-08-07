@@ -2,8 +2,8 @@ import json
 
 from google.cloud import vision
 from google.cloud import language
-from google.cloud import automl_v1beta1
-from google.cloud.automl_v1beta1.proto import service_pb2
+#from google.cloud import automl_v1beta1
+#from google.cloud.automl_v1beta1.proto import service_pb2
 
 class ClassificationResult:
     width = None
@@ -30,7 +30,7 @@ class ClassificationResult:
 class Classifier:
     g_image_annotator = vision.ImageAnnotatorClient()
     #g_prediction_client = automl_v1beta1.PredictionServiceClient()
-    g_language_client = language.LanguageServiceClient();
+    g_language_client = language.LanguageServiceClient()
 
     def __init__(self, project_id, model_id):
         self.project_id = project_id
@@ -42,7 +42,10 @@ class Classifier:
         # OCR the image extracting the text
         image_response = self.g_image_annotator.document_text_detection(image=document_image)
         annotation = image_response.full_text_annotation
-        text = annotation.text
+        paragraphs = self._get_paragraphs_with_boundaries(annotation)
+        text = ""
+        for paragraph in paragraphs['paragraphs']:
+            text = text + paragraph['text'] + '\n'
 
         # Run the text through a classification model
         #name = 'projects/{}/locations/us-central1/models/{}'.format(self.project_id, self.model_id)
@@ -51,18 +54,19 @@ class Classifier:
 
         # Extract interesting entities from the text
         document = language.types.Document(content=text, type=language.enums.Document.Type.PLAIN_TEXT)
-        entity_result = self.g_language_client.analyze_entities(document=document)
+        entity_result = self.g_language_client.analyze_entities(document)
+        entities = self._get_entities(entity_result)
 
         return ClassificationResult(
             annotation.pages[0].width,
             annotation.pages[0].height,
             None, #self._get_classification(prediction),
-            self._get_paragraphs_with_boundaries(annotation),
-            self._get_entities(entity_result))
+            paragraphs,
+            entities)
 
     def _get_entities(self, entity_result):
         def mk_entry(e):
-            return {'salience': e.salience, 'name': e.name}
+            return {'value': e.name, 'metadata': map(lambda (a, b): {a: b}, e.metadata.items())}
 
 
         def render_type(t):
@@ -73,10 +77,11 @@ class Classifier:
 
         entity_map = {}
         for entity in entity_result.entities:
-            e_type = render_type(entity.type)
-            if not e_type in entity_map:
-                entity_map[e_type] = []
-            entity_map[e_type].append(mk_entry(entity))
+            if entity.type in [language.types.Entity.ADDRESS, language.types.Entity.LOCATION, language.types.Entity.PHONE_NUMBER, language.types.Entity.PERSON, language.types.Entity.ORGANIZATION]:
+                e_type = render_type(entity.type)
+                if not e_type in entity_map:
+                    entity_map[e_type] = []
+                    entity_map[e_type].append(mk_entry(entity))
 
         return entity_map
 
