@@ -11,6 +11,7 @@ def classify():
     request_data = request.get_data()
     if (request_data != ""):
         result = requests.post("https://" + request_url, request_data)
+        log.error(result.text)
         return result.text
     else:
         return "No image supplied", 400
