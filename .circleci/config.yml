@@ -1,16 +1,21 @@
 version: 2.1
-jobs:
-  test:
+executors:
+  python:
     docker:
       - image: circleci/python
+  google-cloud:
+    docker:
+      - image: google/cloud-sdk
+jobs:
+  test:
+    executor: python
     steps:
       - checkout
       - run:
           name: Unit Test
-          command: echo true
+          command: env && echo true
   build_and_publish:
-    docker:
-      - image: google/cloud-sdk
+    executor: google-cloud
     environment:
       - GOOGLE_PROJECT_ID: "document-automation-dev"
       - GOOGLE_STORAGE_BUCKET_URL: "gs://107906084271_fuzzylabs_document-automation_dev_cloud-functions"
@@ -21,7 +26,7 @@ jobs:
           command: |
             apt-get install -qq -y zip
             pushd functions/classify
-            zip -r classify.zip .
+            zip -r classify-${CIRCLE_WORKFLOW_ID}.zip .
             popd
       - run:
           name: Setup Google Cloud SDK
@@ -31,10 +36,9 @@ jobs:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
           name: Push content to bucket
-          command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
+          command: gsutil -m cp functions/classify/classify-${CIRCLE_WORKFLOW_ID}.zip ${GOOGLE_STORAGE_BUCKET_URL}
   deploy_to_dev:
-    docker:
-      - image: google/cloud-sdk
+    executor: google-cloud
     environment:
       - ENV: "dev"
       - GOOGLE_PROJECT_ID: "document-automation-dev"
