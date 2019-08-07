@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    $("#entities-title").hide();
     $(":file").filestyle();
 
     var ctx = $("#canvas")[0].getContext("2d");
@@ -20,7 +21,9 @@ $(document).ready(function() {
     $("#upload").click(function() {
         var files = $("#filepath")[0].files[0];
 
-        $("#paragraphs").empty();
+        $("#postcode").empty();
+        $("#entities-title").hide();
+        $("#entities").empty();
         $("#classification").removeClass();
         $("#classification").addClass("text-muted");
         $("#classification").text("Processing");
@@ -41,7 +44,7 @@ $(document).ready(function() {
                     //$("#classification").addClass("text-success");
                     //$("#classification").text(classification);
                     $("#classification").addClass("text-success");
-                    $("#classification").text("...");
+                    $("#classification").text("Document");
 
                     var xcoeff = canvasWidth / json.width;
                     var ycoeff = canvasHeight / json.height;
@@ -58,12 +61,19 @@ $(document).ready(function() {
                         ctx.stroke();
                     });
 
+                    $("#entities-title").show();
                     Object.entries(json.entities).forEach(function([key, value]) {
-                        $("#paragraphs").append("<p><b>" + key + "</b>");
+                        $("#entities").append("<p><b>" + key + "</b>");
                         value.forEach(function(n) {
-                            $("#paragraphs").append(n.name + ", ");
+                            $("#entities").append(n.value + ", ");
+
+                            n.metadata.forEach(function(meta) {
+                                if (meta.postal_code != null) {
+                                    $("#postcode").append("<b>Postcode</b> " + meta.postal_code);
+                                }
+                            });
                         });
-                        $("#paragraphs").append("</p>");
+                        $("#entities").append("</p>");
                     });
                 } else {
                     var result = "Upload failed";
