@@ -11,6 +11,7 @@ class ClassificationResult:
     classification = None
     paragraphs = None
     entities = None
+    text = ""
 
     def __init__(self, width, height, classification, paragraphs, entities):
         self.width = width
@@ -18,12 +19,15 @@ class ClassificationResult:
         self.classification = classification
         self.paragraphs = paragraphs
         self.entities = entities
+        for paragraph in paragraphs['paragraphs']:
+            self.text = self.text + paragraph['text'] + '\n'
 
     def toJson(self):
         return json.dumps({
             "width": self.width,
             "height": self.height,
-            "classification": self.classification,
+            "text": self.text,
+            #"classification": self.classification,
             "paragraphs": self.paragraphs,
             "entities": self.entities})
 

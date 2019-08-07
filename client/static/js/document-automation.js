@@ -1,5 +1,6 @@
 $(document).ready(function() {
     $("#entities-title").hide();
+    $("#text").hide();
     $(":file").filestyle();
 
     var ctx = $("#canvas")[0].getContext("2d");
@@ -23,6 +24,7 @@ $(document).ready(function() {
 
         $("#postcode").empty();
         $("#entities-title").hide();
+        $("#text").hide();
         $("#entities").empty();
         $("#classification").removeClass();
         $("#classification").addClass("text-muted");
@@ -45,6 +47,7 @@ $(document).ready(function() {
                     //$("#classification").text(classification);
                     $("#classification").addClass("text-success");
                     $("#classification").text("Document");
+                    $("#text").text(json.text);
 
                     var xcoeff = canvasWidth / json.width;
                     var ycoeff = canvasHeight / json.height;
@@ -62,6 +65,7 @@ $(document).ready(function() {
                     });
 
                     $("#entities-title").show();
+                    $("#text").show();
                     Object.entries(json.entities).forEach(function([key, value]) {
                         $("#entities").append("<p><b>" + key + "</b>");
                         value.forEach(function(n) {
