@@ -11,6 +11,7 @@ $(document).ready(function() {
         var img = new Image();
         img.src = objUrl;
         img.onload = function() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
             ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
             URL.revokeObjectURL(img.src);
         };
@@ -46,15 +47,16 @@ $(document).ready(function() {
                     var ycoeff = canvasHeight / json.height;
 
                     json.paragraphs.paragraphs.forEach(function(paragraph) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = "red";
                         ctx.moveTo(paragraph.boundingBox[0].x * xcoeff, paragraph.boundingBox[0].y * ycoeff);
                         ctx.lineTo(paragraph.boundingBox[1].x * xcoeff, paragraph.boundingBox[1].y * ycoeff);
                         ctx.lineTo(paragraph.boundingBox[2].x * xcoeff, paragraph.boundingBox[2].y * ycoeff);
                         ctx.lineTo(paragraph.boundingBox[3].x * xcoeff, paragraph.boundingBox[3].y * ycoeff);
                         ctx.lineTo(paragraph.boundingBox[0].x * xcoeff, paragraph.boundingBox[0].y * ycoeff);
+                        ctx.closePath();
+                        ctx.stroke();
                     });
-
-                    ctx.strokeStyle = "red";
-                    ctx.stroke();
 
                     Object.entries(json.entities).forEach(function([key, value]) {
                         $("#paragraphs").append("<p><b>" + key + "</b>");
