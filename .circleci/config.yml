@@ -3,13 +3,9 @@ executors:
   python:
     docker:
       - image: circleci/python
-    environment:
-      - VERSION: $CIRCLE_SHA1
   google-cloud:
     docker:
       - image: google/cloud-sdk
-    environment:
-      - VERSION: $CIRCLE_SHA1
 jobs:
   test:
     executor: python
@@ -30,7 +26,7 @@ jobs:
           command: |
             apt-get install -qq -y zip
             pushd functions/classify
-            zip -r classify.zip .
+            zip -r classify-${CIRCLE_WORKFLOW_ID}.zip .
             popd
       - run:
           name: Setup Google Cloud SDK
@@ -40,7 +36,7 @@ jobs:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
           name: Push content to bucket
-          command: gsutil -m cp functions/classify/classify.zip ${GOOGLE_STORAGE_BUCKET_URL}
+          command: gsutil -m cp functions/classify/classify-${CIRCLE_WORKFLOW_ID}.zip ${GOOGLE_STORAGE_BUCKET_URL}
   deploy_to_dev:
     executor: google-cloud
     environment:
