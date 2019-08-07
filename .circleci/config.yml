@@ -68,11 +68,10 @@ workflows:
       - build_and_publish:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - master
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
       - deploy_to_dev:
-          type: approval
           requires:
             - build_and_publish
