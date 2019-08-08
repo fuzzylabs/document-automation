@@ -70,7 +70,7 @@ class Classifier:
 
     def _get_entities(self, entity_result):
         def mk_entry(e):
-            return {'value': e.name, 'metadata': map(lambda (a, b): {a: b}, e.metadata.items())}
+            return {'value': e.name, 'metadata': map(lambda x: {x[0]: x[1]}, e.metadata.items())}
 
 
         def render_type(t):
