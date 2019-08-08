@@ -1,15 +1,20 @@
 import os
 import logging as log
 from flask import *
+from flask_basicauth import BasicAuth
 import requests
 
 app = Flask(__name__, static_url_path='/static')
+app.config['BASIC_AUTH_USERNAME'] = 'fuzzylabs'
+app.config['BASIC_AUTH_PASSWORD'] = 'xpertrule'
+basic_auth = BasicAuth(app)
 request_url = os.environ.get('BACKEND_URL')
 
 log.basicConfig(level=log.INFO)
 log.info("Backend URL: " + str(request_url))
 
 @app.route('/classify', methods=['POST'])
+@basic_auth.required
 def classify():
     request_data = request.get_data()
     if (request_data != ""):
@@ -19,6 +24,7 @@ def classify():
         return "No image supplied", 400
 
 @app.route('/')
+@basic_auth.required
 def home():
     return render_template('index.html')
 
