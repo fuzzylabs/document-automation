@@ -61,7 +61,7 @@ jobs:
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
             pushd terraform/${ENV}/${REGION}/services/cloud_functions
-            terragrunt apply --auto-approve
+            terragrunt apply -var classify_zipfile=classify-${CIRCLE_WORKFLOW_ID}.zip --auto-approve
             popd
 
 # Workflows determine the order of the defined jobs.
