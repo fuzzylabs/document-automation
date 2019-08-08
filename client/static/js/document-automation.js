@@ -4,10 +4,11 @@ $(document).ready(function() {
     $(":file").filestyle();
 
     var ctx = $("#canvas")[0].getContext("2d");
-    var canvasWidth = 900;
-    var canvasHeight = 1274;
 
     $("#filepath").change(function() {
+        var canvasWidth = $("#canvas")[0].width;
+        var canvasHeight = $("#canvas")[0].height;
+
         var file = $("#filepath")[0].files[0];
         var objUrl = URL.createObjectURL(file);
         var img = new Image();
@@ -21,6 +22,8 @@ $(document).ready(function() {
 
     $("#upload").click(function() {
         var files = $("#filepath")[0].files[0];
+        var canvasWidth = $("#canvas")[0].width;
+        var canvasHeight = $("#canvas")[0].height;
 
         $("#postcode").empty();
         $("#entities-title").hide();
