@@ -81,7 +81,7 @@ class Classifier:
 
         entity_map = {}
         for entity in entity_result.entities:
-            if entity.type in [language.types.Entity.ADDRESS, language.types.Entity.LOCATION, language.types.Entity.PHONE_NUMBER, language.types.Entity.PERSON, language.types.Entity.ORGANIZATION]:
+            if entity.type in [language.types.Entity.ADDRESS, language.types.Entity.LOCATION, language.types.Entity.PHONE_NUMBER, language.types.Entity.PERSON, language.types.Entity.ORGANIZATION, language.types.Entity.DATE]:
                 e_type = render_type(entity.type)
                 if not e_type in entity_map:
                     entity_map[e_type] = []
