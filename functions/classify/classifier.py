@@ -1,5 +1,5 @@
 import json
-
+ 
 from google.cloud import vision
 from google.cloud import language
 #from google.cloud import automl_v1beta1
