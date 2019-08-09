@@ -1,4 +1,5 @@
 version: 2.1
+
 executors:
   python:
     docker:
@@ -6,14 +7,23 @@ executors:
   google-cloud:
     docker:
       - image: google/cloud-sdk
+
+commands:
+  shouldIBuild:
+    description: "A step to test if we should build this service"
+    parameters:
+      service:
+        type: string
+    steps:
+      - run: git diff-tree --name-only $(git log -n 2 --pretty=format:"%H") | egrep << parameters.service >> || circleci-agent step halt
+
 jobs:
   test_classifier:
     executor: python
     steps:
       - checkout
-      - run:
-          name: Should we build the Classifier
-          command: git diff-tree --name-only $(git log -n 2 --pretty=format:"%H") | egrep 'functions/classify' || circleci-agent step halt
+      - shouldIBuild:
+          service: "functions/classify"
       - run:
           name: Unit Test
           command: env && echo true
@@ -24,6 +34,8 @@ jobs:
       - GOOGLE_STORAGE_BUCKET_URL: "gs://107906084271_fuzzylabs_document-automation_dev_cloud-functions"
     steps:
       - checkout
+      - shouldIBuild:
+          service: "functions/classify"
       - run:
           name: Create Cloud Function Classify Zip File
           command: |
@@ -50,6 +62,8 @@ jobs:
       - TERRAFORM_VERSION: "0.12.5"
     steps:
       - checkout
+      - shouldIBuild:
+          service: "functions/classify"
       - run:
           name: Install Terragrunt and Terraform
           command: |
