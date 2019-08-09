@@ -1,6 +1,6 @@
 FROM python
 
-# test comment
+# testing comment
 
 COPY ./requirements.txt /app/requirements.txt
 
