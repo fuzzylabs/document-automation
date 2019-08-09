@@ -1,0 +1,81 @@
+version: 2.1
+executors:
+  python:
+    docker:
+      - image: circleci/python
+  google-cloud:
+    docker:
+      - image: google/cloud-sdk
+jobs:
+  test:
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: Unit Test
+          command: env && echo true
+  build_and_publish:
+    executor: google-cloud
+    environment:
+      - GOOGLE_PROJECT_ID: "document-automation-dev"
+      - GOOGLE_STORAGE_BUCKET_URL: "gs://107906084271_fuzzylabs_document-automation_dev_cloud-functions"
+    steps:
+      - checkout
+      - run:
+          name: Create Cloud Function Classify Zip File
+          command: |
+            apt-get install -qq -y zip
+            pushd functions/classify
+            zip -r classify-${CIRCLE_WORKFLOW_ID}.zip .
+            popd
+      - run:
+          name: Setup Google Cloud SDK
+          command: |
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+      - run:
+          name: Push content to bucket
+          command: gsutil -m cp functions/classify/classify-${CIRCLE_WORKFLOW_ID}.zip ${GOOGLE_STORAGE_BUCKET_URL}
+  deploy_to_dev:
+    executor: google-cloud
+    environment:
+      - ENV: "dev"
+      - GOOGLE_PROJECT_ID: "document-automation-dev"
+      - REGION: "europe-west1"
+      - TERRAGRUNT_VERSION: "0.19.9"
+      - TERRAFORM_VERSION: "0.12.5"
+    steps:
+      - checkout
+      - run:
+          name: Install Terragrunt and Terraform
+          command: |
+            apt-get install -qq -y curl unzip
+            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
+            chmod +x /bin/terragrunt
+            curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
+            unzip /tmp/terraform.zip -d /bin
+      - run:
+          name: Terragrunt Apply
+          command: |
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+            pushd terraform/${ENV}/${REGION}/services/cloud_functions
+            terragrunt apply -var classify_zipfile=classify-${CIRCLE_WORKFLOW_ID}.zip --auto-approve
+            popd
+
+# Workflows determine the order of the defined jobs.
+workflows:
+  test_build_deploy:
+    jobs:
+      - test
+      - build_and_publish:
+          requires:
+            - test
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
+      - deploy_to_dev:
+          requires:
+            - build_and_publish

@@ -10,10 +10,10 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-6 text-center">
-          <canvas id="canvas" width="900" height="1274" style="border: 1px solid #d3d3d3"></canvas>
+          <canvas id="canvas" width="600" height="849" style="border: 1px solid #d3d3d3"></canvas>
         </div>
 
-        <div class="col-md-6">          
+        <div class="col-md-6">
           <form method="post">
             <div class="form-group">
               <label for="file">File path</label>
@@ -22,9 +22,15 @@
             <input type="button" class="btn btn-primary" value="Upload" id="upload">
           </form>
 
-          <h2><span id="classification" class="text-muted font-italic">classification result will appear here</span></h2>
+          <h2><span id="classification" class="text-muted font-italic"></span></h2>
 
-          <span id="paragraphs"></span>
+          <h4><span id="name"></span></h4>
+          <h4><span id="postcode"></span></h4>
+
+          <h3><span id="entities-title">All entities</span></h3>
+          <span id="entities"></span>
+
+          <pre id="text"></pre>
         </div>
       </div>
     </div>

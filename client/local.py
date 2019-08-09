@@ -1,6 +1,8 @@
+import sys
+sys.path.append('../functions/classify') # a hack so we can pull the cloud function code in for local testing
+
 import os
 import logging as log
-
 from flask import *
 from classifier import Classifier
 
@@ -20,4 +22,4 @@ def classify():
 def home():
     return render_template('index.html')
 
-classifier = Classifier(os.environ['GOOGLE_PROJECT_ID'], os.environ['GOOGLE_MODEL_ID'])
+classifier = Classifier(os.environ['GCP_PROJECT'], None)
