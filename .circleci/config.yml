@@ -7,14 +7,17 @@ executors:
     docker:
       - image: google/cloud-sdk
 jobs:
-  test:
+  test_classifier:
     executor: python
     steps:
       - checkout
       - run:
+          name: Should we build the Classifier
+          command: git diff-tree --name-only $(git log -n 2 --pretty=format:"%H") | egrep 'functions/classify' || exit
+      - run:
           name: Unit Test
           command: env && echo true
-  build_and_publish:
+  build_and_publish_classifier:
     executor: google-cloud
     environment:
       - GOOGLE_PROJECT_ID: "document-automation-dev"
@@ -37,7 +40,7 @@ jobs:
       - run:
           name: Push content to bucket
           command: gsutil -m cp functions/classify/classify-${CIRCLE_WORKFLOW_ID}.zip ${GOOGLE_STORAGE_BUCKET_URL}
-  deploy_to_dev:
+  deploy_classifier_to_dev:
     executor: google-cloud
     environment:
       - ENV: "dev"
@@ -66,16 +69,16 @@ jobs:
 
 # Workflows determine the order of the defined jobs.
 workflows:
-  test_build_deploy:
+  test_build_deploy_classifier:
     jobs:
-      - test
-      - build_and_publish:
+      - test_classifier
+      - build_and_publish_classifier:
           requires:
             - test
           #filters:
           #  branches:
           #    only:
           #      - master
-      - deploy_to_dev:
+      - deploy_classifier_to_dev:
           requires:
-            - build_and_publish
+            - build_and_publish_classifier
