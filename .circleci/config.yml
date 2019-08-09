@@ -9,7 +9,7 @@ executors:
       - image: google/cloud-sdk
 
 commands:
-  shouldIBuild:
+  should_i_build:
     description: "A step to test if we should build this service"
     parameters:
       service:
@@ -22,7 +22,7 @@ jobs:
     executor: python
     steps:
       - checkout
-      - shouldIBuild:
+      - should_i_build:
           service: "functions/classify"
       - run:
           name: Unit Test
@@ -34,7 +34,7 @@ jobs:
       - GOOGLE_STORAGE_BUCKET_URL: "gs://107906084271_fuzzylabs_document-automation_dev_cloud-functions"
     steps:
       - checkout
-      - shouldIBuild:
+      - should_i_build:
           service: "functions/classify"
       - run:
           name: Create Cloud Function Classify Zip File
@@ -62,7 +62,7 @@ jobs:
       - TERRAFORM_VERSION: "0.12.5"
     steps:
       - checkout
-      - shouldIBuild:
+      - should_i_build:
           service: "functions/classify"
       - run:
           name: Install Terragrunt and Terraform
