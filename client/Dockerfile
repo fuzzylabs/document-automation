@@ -1,7 +1,5 @@
 FROM python
 
-# testing comment 1
-
 COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app

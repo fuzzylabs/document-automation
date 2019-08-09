@@ -3,8 +3,6 @@ import logging as log
 from flask import *
 from classifier import Classifier
 
-# testing comment 1
-
 classifier = Classifier(os.environ['GCP_PROJECT'], None)
 
 def classify(request):

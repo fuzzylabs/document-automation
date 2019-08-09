@@ -152,10 +152,10 @@ workflows:
       - build_and_publish_classifier:
           requires:
             - test_classifier
-          #filters:
-          #  branches:
-          #    only:
-          #      - master
+          filters:
+            branches:
+              only:
+                - master
       - deploy_classifier_to_dev:
           requires:
             - build_and_publish_classifier
@@ -166,10 +166,10 @@ workflows:
       - build_and_publish_document_client:
           requires:
             - test_document_client
-          #filters:
-          #  branches:
-          #    only:
-          #      - master
+          filters:
+            branches:
+              only:
+                - master
       - deploy_document_client_to_dev:
           requires:
             - build_and_publish_document_client
