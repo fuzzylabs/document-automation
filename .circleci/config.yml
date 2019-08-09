@@ -13,7 +13,7 @@ jobs:
       - checkout
       - run:
           name: Should we build the Classifier
-          command: git diff-tree --name-only $(git log -n 2 --pretty=format:"%H") | egrep 'functions/classify' || exit 0
+          command: git diff-tree --name-only $(git log -n 2 --pretty=format:"%H") | egrep 'functions/classify' || circleci-agent step halt
       - run:
           name: Unit Test
           command: env && echo true
