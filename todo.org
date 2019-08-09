@@ -1,3 +1,0 @@
-* TODO Two 'server.py' files: one for local testing and one to hit the remote endpoint
-* TODO Documentation at root and in client directory
-* TODO Get some certainty measures for OCR
