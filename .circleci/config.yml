@@ -15,7 +15,7 @@ commands:
       service:
         type: string
     steps:
-      - run: git diff-tree --name-only $(git log -n 2 --pretty=format:"%H") | egrep << parameters.service >> || circleci-agent step halt
+      - run: git diff --name-only $(git log -n 2 --pretty=format:"%H") | egrep ^<< parameters.service >> || circleci-agent step halt
 
 jobs:
   test_classifier:
