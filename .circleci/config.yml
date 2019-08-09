@@ -98,7 +98,7 @@ jobs:
   build_and_publish_document_client:
     executor: google-cloud
     environment:
-      - GOOGLE_REGISTRY_REGION: "eu.gcr.io"
+      - ENV: "dev"
     steps:
       - checkout
       - should_i_build:
