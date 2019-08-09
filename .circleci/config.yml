@@ -45,7 +45,6 @@ commands:
     parameters:
       terragrunt_dir:
         type: string
-    parameters:
       terragrunt_args:
         type: string
         default: ""
