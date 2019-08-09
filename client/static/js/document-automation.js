@@ -14,7 +14,17 @@ $(document).ready(function() {
         img.src = objUrl;
         img.onload = function() {
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-            ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+
+            // This is a little hack to get around images that have EXIF rotation due to phone orientation
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            if (img.width > img.height) {
+                ctx.translate(canvasWidth / 2, canvasHeight / 2);
+                ctx.rotate(90 * Math.PI / 180);
+                ctx.translate(-canvasHeight / 2, -canvasWidth / 2);
+                ctx.drawImage(img, 0, 0, canvasHeight, canvasWidth);
+            } else {
+                ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+            }
             URL.revokeObjectURL(img.src);
         };
     });
