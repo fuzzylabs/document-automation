@@ -18,6 +18,7 @@ commands:
       - run: git diff --name-only $(git log -n 2 --pretty=format:"%H") | egrep ^<< parameters.service >> || circleci-agent step halt
 
 jobs:
+  ## Classifier Backend Jobs
   test_classifier:
     executor: python
     steps:
@@ -80,9 +81,71 @@ jobs:
             pushd terraform/${ENV}/${REGION}/services/cloud_functions
             terragrunt apply -var classify_zipfile=classify-${CIRCLE_WORKFLOW_ID}.zip --auto-approve
             popd
+  ## Document Client Jobs
+  test_document_client:
+    executor: python
+    steps:
+      - checkout
+      - should_i_build:
+          service: "client"
+      - run:
+          name: Unit Test
+          command: env && echo true
+  build_and_publish_document_client:
+    executor: google-cloud
+    environment:
+      - GOOGLE_PROJECT_ID: "document-automation-dev"
+    steps:
+      - checkout
+      - should_i_build:
+          service: "client"
+      - run:
+          name: Build Docker Image
+          command: |
+            pushd client
+            docker build -t eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID} .
+            popd
+      - run:
+          name: Setup Google Cloud SDK
+          command: |
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+      - run:
+          name: Push to Docker Registry
+          command: docker push eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID}
+  deploy_document_client_to_dev:
+    executor: google-cloud
+    environment:
+      - ENV: "dev"
+      - GOOGLE_PROJECT_ID: "document-automation-dev"
+      - REGION: "europe-west1"
+      - TERRAGRUNT_VERSION: "0.19.9"
+      - TERRAFORM_VERSION: "0.12.5"
+    steps:
+      - checkout
+      - should_i_build:
+          service: "client"
+      - run:
+          name: Install Terragrunt and Terraform
+          command: |
+            apt-get install -qq -y curl unzip
+            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
+            chmod +x /bin/terragrunt
+            curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
+            unzip /tmp/terraform.zip -d /bin
+      - run:
+          name: Terragrunt Apply
+          command: |
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+            pushd terraform/${ENV}/${REGION}/services/cloud_run_services
+            terragrunt apply -var document_client_image=eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID} --auto-approve
+            popd
 
 # Workflows determine the order of the defined jobs.
 workflows:
+  ## Backend Classifier Workflow
   test_build_deploy_classifier:
     jobs:
       - test_classifier
@@ -96,3 +159,17 @@ workflows:
       - deploy_classifier_to_dev:
           requires:
             - build_and_publish_classifier
+  ## Document Client Workflow
+  test_build_deploy_document_client:
+    jobs:
+      - test_document_client
+      - build_and_publish_document_client:
+          requires:
+            - test_document_client
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
+      - deploy_document_client_to_dev:
+          requires:
+            - build_and_publish_document_client
