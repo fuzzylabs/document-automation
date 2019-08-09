@@ -112,6 +112,7 @@ jobs:
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+            gcloud auth configure-docker
       - run:
           name: Push to Docker Registry
           command: docker push eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID}
