@@ -42,7 +42,7 @@ jobs:
           command: |
             apt-get install -qq -y zip
             pushd functions/classify
-            zip -r classify-${CIRCLE_WORKFLOW_ID}.zip .
+            zip -r classify-${CIRCLE_SHA1}.zip .
             popd
       - run:
           name: Setup Google Cloud SDK
@@ -52,7 +52,7 @@ jobs:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
           name: Push content to bucket
-          command: gsutil -m cp functions/classify/classify-${CIRCLE_WORKFLOW_ID}.zip ${GOOGLE_STORAGE_BUCKET_URL}
+          command: gsutil -m cp functions/classify/classify-${CIRCLE_SHA1}.zip ${GOOGLE_STORAGE_BUCKET_URL}
   deploy_classifier_to_dev:
     executor: google-cloud
     environment:
@@ -79,7 +79,7 @@ jobs:
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
             pushd terraform/${ENV}/${REGION}/services/cloud_functions
-            terragrunt apply -var classify_zipfile=classify-${CIRCLE_WORKFLOW_ID}.zip --auto-approve
+            terragrunt apply -var classify_zipfile=classify-${CIRCLE_SHA1}.zip --auto-approve
             popd
   ## Document Client Jobs
   test_document_client:
@@ -104,7 +104,7 @@ jobs:
           name: Build Docker Image
           command: |
             pushd client
-            docker build -t eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID} .
+            docker build -t eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_SHA1} .
             popd
       - run:
           name: Setup Google Cloud SDK
@@ -115,7 +115,7 @@ jobs:
             gcloud auth configure-docker
       - run:
           name: Push to Docker Registry
-          command: docker push eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID}
+          command: docker push eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_SHA1}
   deploy_document_client_to_dev:
     executor: google-cloud
     environment:
@@ -142,7 +142,7 @@ jobs:
             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
             pushd terraform/${ENV}/${REGION}/services/cloud_run_services
-            terragrunt apply -var document_client_image=eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_WORKFLOW_ID} --auto-approve
+            terragrunt apply -var document_client_image=eu.gcr.io/${GOOGLE_PROJECT_ID}/document-client:${CIRCLE_SHA1} --auto-approve
             popd
 
 # Workflows determine the order of the defined jobs.
