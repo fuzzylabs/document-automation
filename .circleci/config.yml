@@ -24,6 +24,28 @@ commands:
         type: string
     steps:
       - run: git diff --name-only $(git log -n 2 --pretty=format:"%H") | egrep ^<< parameters.service >> || circleci-agent step halt
+  google_auth:
+    description: Configure the Google SDK for authentication
+    #parameters:
+    #  type: env_var_name
+    #  default: GCLOUD_SERVICE_KEY
+    steps:
+      - run: |
+          echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+          gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+          gcloud --quiet config set project ${GOOGLE_PROJECT_GROUP}-${ENV}
+  install_terragrunt_terraform:
+    description: Install Terragrunt and Terraform
+    #parameters:
+    #  type: env_var_name
+    #  default: TERRAGRUNT_VERSION
+    steps:
+      - run: |
+          apt-get install -qq -y curl unzip
+          curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
+          chmod +x /bin/terragrunt
+          curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
+          unzip /tmp/terraform.zip -d /bin
 
 jobs:
   ## Classifier Backend Jobs
@@ -52,12 +74,7 @@ jobs:
             pushd functions/classify
             zip -r classify-${CIRCLE_SHA1}.zip .
             popd
-      - run:
-          name: Setup Google Cloud SDK
-          command: |
-            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-            gcloud --quiet config set project ${GOOGLE_PROJECT_GROUP}-${ENV}
+      - google_auth
       - run:
           name: Push content to bucket
           command: gsutil -m cp functions/classify/classify-${CIRCLE_SHA1}.zip ${GOOGLE_STORAGE_BUCKET_URL}
@@ -69,14 +86,7 @@ jobs:
       - checkout
       - should_i_build:
           service: "functions/classify"
-      - run:
-          name: Install Terragrunt and Terraform
-          command: |
-            apt-get install -qq -y curl unzip
-            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
-            chmod +x /bin/terragrunt
-            curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
-            unzip /tmp/terraform.zip -d /bin
+      - install_terragrunt_terraform
       - run:
           name: Terragrunt Apply
           command: |
@@ -110,16 +120,12 @@ jobs:
             pushd client
             docker build -t ${GOOGLE_REGISTRY_REGION}/${GOOGLE_PROJECT_GROUP}-${ENV}/document-client:${CIRCLE_SHA1} .
             popd
-      - run:
-          name: Setup Google Cloud SDK
-          command: |
-            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-            gcloud --quiet config set project ${GOOGLE_PROJECT_GROUP}-${ENV}
-            gcloud auth configure-docker
+      - google_auth
       - run:
           name: Push to Docker Registry
-          command: docker push ${GOOGLE_REGISTRY_REGION}/${GOOGLE_PROJECT_GROUP}-${ENV}/document-client:${CIRCLE_SHA1}
+          command: |
+            gcloud auth configure-docker
+            docker push ${GOOGLE_REGISTRY_REGION}/${GOOGLE_PROJECT_GROUP}-${ENV}/document-client:${CIRCLE_SHA1}
   deploy_document_client_to_dev:
     executor: google-cloud
     environment:
@@ -128,14 +134,7 @@ jobs:
       - checkout
       - should_i_build:
           service: "client"
-      - run:
-          name: Install Terragrunt and Terraform
-          command: |
-            apt-get install -qq -y curl unzip
-            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
-            chmod +x /bin/terragrunt
-            curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
-            unzip /tmp/terraform.zip -d /bin
+      - install_terragrunt_terraform
       - run:
           name: Terragrunt Apply
           command: |
