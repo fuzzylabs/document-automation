@@ -99,6 +99,7 @@ jobs:
       - checkout
       - should_i_build:
           service: "client"
+      - setup_remote_docker
       - run:
           name: Build Docker Image
           command: |

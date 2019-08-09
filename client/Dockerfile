@@ -1,7 +1,5 @@
 FROM python
 
-# Test comment to trigger build
-
 COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app
