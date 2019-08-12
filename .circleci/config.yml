@@ -4,9 +4,17 @@ executors:
   python:
     docker:
       - image: circleci/python
+    environment:
+      GOOGLE_PROJECT_GROUP: "document-automation"
   google-cloud:
     docker:
       - image: google/cloud-sdk
+    environment:
+      GOOGLE_PROJECT_GROUP: "document-automation"
+      REGION: "europe-west1"
+      GOOGLE_REGISTRY_REGION: "eu.gcr.io"
+      TERRAGRUNT_VERSION: "0.19.9"
+      TERRAFORM_VERSION: "0.12.5"
 
 commands:
   should_i_build:
@@ -16,8 +24,40 @@ commands:
         type: string
     steps:
       - run: git diff --name-only $(git log -n 2 --pretty=format:"%H") | egrep ^<< parameters.service >> || circleci-agent step halt
+  google_auth:
+    description: Configure the Google SDK for authentication
+    steps:
+      - run: |
+          echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+          gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+          gcloud --quiet config set project ${GOOGLE_PROJECT_GROUP}-${ENV}
+  install_terragrunt_terraform:
+    description: Install Terragrunt and Terraform
+    steps:
+      - run: |
+          apt-get install -qq -y curl unzip
+          curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
+          chmod +x /bin/terragrunt
+          curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
+          unzip /tmp/terraform.zip -d /bin
+  terragrunt_apply:
+    description: Run Terragrunt apply in specified directory with optional arguments.
+    parameters:
+      terragrunt_dir:
+        type: string
+      terragrunt_args:
+        type: string
+        default: ""
+    steps:
+      - run: |
+          echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+          pushd terraform/${ENV}/${REGION}/<< parameters.terragrunt_dir >>
+          terragrunt apply << parameters.terragrunt_args >> --auto-approve
+          popd
 
 jobs:
+  ## Classifier Backend Jobs
   test_classifier:
     executor: python
     steps:
@@ -30,7 +70,7 @@ jobs:
   build_and_publish_classifier:
     executor: google-cloud
     environment:
-      - GOOGLE_PROJECT_ID: "document-automation-dev"
+      - ENV: "dev"
       - GOOGLE_STORAGE_BUCKET_URL: "gs://107906084271_fuzzylabs_document-automation_dev_cloud-functions"
     steps:
       - checkout
@@ -41,58 +81,95 @@ jobs:
           command: |
             apt-get install -qq -y zip
             pushd functions/classify
-            zip -r classify-${CIRCLE_WORKFLOW_ID}.zip .
+            zip -r classify-${CIRCLE_SHA1}.zip .
             popd
-      - run:
-          name: Setup Google Cloud SDK
-          command: |
-            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+      - google_auth
       - run:
           name: Push content to bucket
-          command: gsutil -m cp functions/classify/classify-${CIRCLE_WORKFLOW_ID}.zip ${GOOGLE_STORAGE_BUCKET_URL}
+          command: gsutil -m cp functions/classify/classify-${CIRCLE_SHA1}.zip ${GOOGLE_STORAGE_BUCKET_URL}
   deploy_classifier_to_dev:
     executor: google-cloud
     environment:
       - ENV: "dev"
-      - GOOGLE_PROJECT_ID: "document-automation-dev"
-      - REGION: "europe-west1"
-      - TERRAGRUNT_VERSION: "0.19.9"
-      - TERRAFORM_VERSION: "0.12.5"
     steps:
       - checkout
       - should_i_build:
           service: "functions/classify"
+      - install_terragrunt_terraform
+      - terragrunt_apply:
+          terragrunt_dir: "services/cloud_functions"
+          terragrunt_args: "-var classify_zipfile=classify-${CIRCLE_SHA1}.zip"
+  ## Document Client Jobs
+  test_document_client:
+    executor: python
+    steps:
+      - checkout
+      - should_i_build:
+          service: "client"
       - run:
-          name: Install Terragrunt and Terraform
-          command: |
-            apt-get install -qq -y curl unzip
-            curl -sL https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_386 -o /bin/terragrunt
-            chmod +x /bin/terragrunt
-            curl -sL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip
-            unzip /tmp/terraform.zip -d /bin
+          name: Unit Test
+          command: env && echo true
+  build_and_publish_document_client:
+    executor: google-cloud
+    environment:
+      - ENV: "dev"
+    steps:
+      - checkout
+      - should_i_build:
+          service: "client"
+      - setup_remote_docker
       - run:
-          name: Terragrunt Apply
+          name: Build Docker Image
           command: |
-            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-            export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
-            pushd terraform/${ENV}/${REGION}/services/cloud_functions
-            terragrunt apply -var classify_zipfile=classify-${CIRCLE_WORKFLOW_ID}.zip --auto-approve
+            pushd client
+            docker build -t ${GOOGLE_REGISTRY_REGION}/${GOOGLE_PROJECT_GROUP}-${ENV}/document-client:${CIRCLE_SHA1} .
             popd
+      - google_auth
+      - run:
+          name: Push to Docker Registry
+          command: |
+            gcloud auth configure-docker
+            docker push ${GOOGLE_REGISTRY_REGION}/${GOOGLE_PROJECT_GROUP}-${ENV}/document-client:${CIRCLE_SHA1}
+  deploy_document_client_to_dev:
+    executor: google-cloud
+    environment:
+      - ENV: "dev"
+    steps:
+      - checkout
+      - should_i_build:
+          service: "client"
+      - install_terragrunt_terraform
+      - terragrunt_apply:
+          terragrunt_dir: "services/cloud_run_services"
+          terragrunt_args: "-var document_client_image=${GOOGLE_REGISTRY_REGION}/${GOOGLE_PROJECT_GROUP}-${ENV}/document-client:${CIRCLE_SHA1}"
 
 # Workflows determine the order of the defined jobs.
 workflows:
+  ## Backend Classifier Workflow
   test_build_deploy_classifier:
     jobs:
       - test_classifier
       - build_and_publish_classifier:
           requires:
             - test_classifier
-          #filters:
-          #  branches:
-          #    only:
-          #      - master
+          filters:
+            branches:
+              only:
+                - master
       - deploy_classifier_to_dev:
           requires:
             - build_and_publish_classifier
+  ## Document Client Workflow
+  test_build_deploy_document_client:
+    jobs:
+      - test_document_client
+      - build_and_publish_document_client:
+          requires:
+            - test_document_client
+          filters:
+            branches:
+              only:
+                - master
+      - deploy_document_client_to_dev:
+          requires:
+            - build_and_publish_document_client
