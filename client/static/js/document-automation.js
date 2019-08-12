@@ -15,7 +15,7 @@ $(document).ready(function() {
         img.onload = function() {
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            // This is a little hack to get around images that have EXIF rotation due to phone orientation
+            // A little hack to get around images that have EXIF rotation due to phone orientation
             if (img.width > img.height) {
                 ctx.translate(canvasWidth / 2, canvasHeight / 2);
                 ctx.rotate(90 * Math.PI / 180);
